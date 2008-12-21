@@ -1,0 +1,312 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "atlres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\MML2MIDfe.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 144, 85
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About MML2MIDfe"
+FONT 9, "MS Shell Dlg", 400, 0, 0x80
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,47,64,50,14
+    ICON            IDR_MAINFRAME,IDC_STATIC,4,4,18,18
+    LTEXT           "MML2MIDfe - MML2MID frontend",IDC_STATIC,32,4,105,8
+    RTEXT           "Version 2.0 rel 0 build 0",IDC_VERSIONLABEL,32,16,105,8
+    LTEXT           "Copyright (c) 2002-2006 Autch.net;  All rights reserved.",IDC_STATIC,6,30,126,20
+END
+
+IDD_MAINDLG DIALOGEX 0, 0, 319, 305
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_ACCEPTFILES | WS_EX_APPWINDOW
+CAPTION "MML2MIDfe"
+MENU IDR_MAINDLG
+FONT 9, "MS Shell Dlg", 400, 0, 0x80
+BEGIN
+    GROUPBOX        "ファイル:",IDC_FILEGROUP,8,8,216,72
+    LTEXT           "&MML ファイル:",IDC_MMLFILELABEL,31,20,60,12
+    EDITTEXT        IDC_MMLFILEEDIT,12,30,150,12,ES_AUTOHSCROLL,WS_EX_ACCEPTFILES
+    PUSHBUTTON      "参照(&B)...",IDC_BROWSEMMLBUTTON,170,30,42,12
+    LTEXT           "&SMF ファイル:",IDC_SMFFILELABEL,12,48,56,12
+    EDITTEXT        IDC_SMFFILEEDIT,12,60,150,12,ES_AUTOHSCROLL,WS_EX_ACCEPTFILES
+    PUSHBUTTON      "参照(&R)...",IDC_BROWSESMFBUTTON,168,60,42,12
+    GROUPBOX        "コンパイラオプション:",IDC_OPTIONGROUP,8,82,216,40
+    CONTROL         "<> を反転(&X)",IDC_INVERTOCTCHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,93,60,10
+    CONTROL         "() を反転(&V)",IDC_INVERTVOLCHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,105,56,10
+    CONTROL         "SMF Format &0 を出力",IDC_SMFFORMAT0RADIO,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,77,94,79,10
+    CONTROL         "SMF Format &1 を出力",IDC_SMFFORMAT1RADIO,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,77,107,79,10
+    RTEXT           "全体移調(&T):",IDC_TRANSPOSELABEL,159,89,44,8
+    EDITTEXT        IDC_TRANSPOSEEDIT,167,101,36,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "",IDC_TRSANSPOSESPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,195,101,9,12
+    DEFPUSHBUTTON   "コンパイル(&C)",IDC_COMPILEBUTTON,251,8,60,24
+    PUSHBUTTON      "再生(&P)",IDC_PLAYBUTTON,251,36,60,20
+    PUSHBUTTON      "編集(&E)",IDC_EDITBUTTON,251,60,60,20
+    CONTROL         "自動再生(&L)",IDC_AUTOPLAYCHECK,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,224,89,60,10
+    CONTROL         "自動コンパイル(&I)",IDC_AUTOCOMPILECHECK,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,243,105,68,10
+    CONTROL         "",IDC_MESSAGELIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,8,189,303,108
+    EDITTEXT        IDC_MSGEDIT,8,132,303,14,ES_AUTOHSCROLL | ES_READONLY
+END
+
+IDD_PREFERENCES DIALOGEX 0, 0, 280, 172
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "MML2MIDfe の設定"
+FONT 9, "MS Shell Dlg", 400, 0, 0x80
+BEGIN
+    LTEXT           "&MML2MID のパス:",IDC_STATIC,4,4,56,8
+    EDITTEXT        IDC_MML2MIDEDIT,4,16,216,14,ES_AUTOHSCROLL,WS_EX_ACCEPTFILES
+    PUSHBUTTON      "参照(&B)...",IDC_BROWSEMML2MIDBUTTON,224,16,50,14
+    GROUPBOX        "MML エディタ(&T):",IDC_STATIC,4,33,272,55
+    CONTROL         "拡張子 .mml の関連付けを使って開く(&A)",IDC_USEASSOCEDITORRADIO,
+                    "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,44,143,10
+    CONTROL         "指定したアプリケーションで開く(&U):",IDC_USEMYEDITORRADIO,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,56,121,10
+    EDITTEXT        IDC_MYEDITORWITHLINEEDIT,25,68,194,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "参照(&O)...",IDC_BROWSEMYEDITORWITHLINEBUTTON,224,67,48,14
+    GROUPBOX        "SM&F プレーヤ:",IDC_STATIC,4,89,272,56
+    LTEXT           "%f : MML/SMF ファイル名，%l : 行番号",IDC_STATIC,8,153,160,12
+    DEFPUSHBUTTON   "OK",IDOK,172,150,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,224,150,50,14
+    CONTROL         "拡張子 .mid の関連付けを使って開く(&D)",IDC_USEASSOCPLAYERRADIO,
+                    "Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,101,142,10
+    CONTROL         "指定したアプリケーションで開く(&P):",IDC_USEMYPLAYERRADIO,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,12,113,121,10
+    EDITTEXT        IDC_MYPLAYEREDIT,24,126,196,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "参照(&W)...",IDC_BROWSEMYPLAYERBUTTON,224,126,48,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 137
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 78
+    END
+
+    IDD_MAINDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 8
+        RIGHTMARGIN, 311
+        VERTGUIDE, 12
+        VERTGUIDE, 77
+        VERTGUIDE, 224
+        TOPMARGIN, 8
+        BOTTOMMARGIN, 297
+    END
+
+    IDD_PREFERENCES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 276
+        VERTGUIDE, 24
+        VERTGUIDE, 219
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 165
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS 
+BEGIN
+    "E",            IDM_EDIT,               VIRTKEY, CONTROL, NOINVERT
+    "O",            IDM_OPENMML,            VIRTKEY, CONTROL, NOINVERT
+    "P",            IDM_PLAY,               VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          IDM_HELP_CONTENTS,      VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,0,0,2
+ PRODUCTVERSION 2,0,0,2
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041104b0"
+        BEGIN
+            VALUE "CompanyName", "Autch.net"
+            VALUE "FileDescription", "MML2MIDfe executable"
+            VALUE "FileVersion", "2, 0, 0, 2"
+            VALUE "InternalName", "MML2MIDfe"
+            VALUE "LegalCopyright", "Copyright(c) 2005-2008 Autch.net.  All rights reserved.  MML2MID by A.Monden, H.Fujii, H.Kuroda, N.Nide"
+            VALUE "OriginalFilename", "MML2MIDfe.exe"
+            VALUE "ProductName", "MML2MIDfe - MML2MID frontend"
+            VALUE "ProductVersion", "2, 0, 0, 2"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x411, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINDLG MENUEX 
+BEGIN
+    POPUP "ファイル(&F)",                       65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "&MML ファイルを開く\tCtrl+O",        32783,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "コンパイル(&C)\tEnter",            32784,MFT_STRING,MFS_ENABLED | MFS_UNCHECKED | MFS_UNHILITE | MFS_DEFAULT
+        MENUITEM "再生(&P)\tCtrl+P",              32785,MFT_STRING,MFS_ENABLED
+        MENUITEM "編集(&E)\tCtrl+E",              32786,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "MML2MIDfe の終了(&X)",           32787,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "オプション(&O)",                      65535,MFT_STRING,MFS_ENABLED
+    BEGIN
+        MENUITEM "設定(&S)...",                   32788,MFT_STRING,MFS_ENABLED
+    END
+    POPUP "ヘルプ(&H)",                        65535,MFT_STRING | MFT_RIGHTJUSTIFY,MFS_ENABLED
+    BEGIN
+        MENUITEM "MML2MIDfe 目次(&C)\tF1",        32789,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "MML2MID official &web site",  32790,MFT_STRING,MFS_ENABLED
+        MENUITEM "Autch.&net",                  32791,MFT_STRING,MFS_ENABLED
+        MENUITEM MFT_SEPARATOR
+        MENUITEM "MML2MIDfe について(&A)...",       32792,MFT_STRING,MFS_ENABLED
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_INFO                BITMAP                  "res\\w95_Info.BMP"
+IDB_WARNING             BITMAP                  "res\\w95_Warning.BMP"
+IDB_ERROR               BITMAP                  "res\\w95_Error.BMP"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDR_MAINFRAME           "MML2MIDfe"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// 英語 (米国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""atlres.h""\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // 英語 (米国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
