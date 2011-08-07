@@ -317,7 +317,7 @@ LRESULT CMainDlg::OnEnFileedit(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 LRESULT CMainDlg::OnMML2MIDWeb(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  ShellExecute(*this, NULL, _T("http://platz.jp/~mml2mid/"), NULL, NULL, SW_SHOWDEFAULT);
+  ShellExecute(*this, NULL, _T("http://hpc.jp/~mml2mid/"), NULL, NULL, SW_SHOWDEFAULT);
   return 0;
 }
 LRESULT CMainDlg::OnAutchNet(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)

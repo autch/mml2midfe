@@ -37,13 +37,7 @@ private:
     s.Format("%s", m_sMML2MID);
     return s;
   }
-  CString GetMyEditorCommandLine(CString sMMLFile)
-  {
-    CString s = m_sMyEditor;
-    s.Replace(_T("%f"), sMMLFile.GetBuffer(20));
-    return s;
-  }
-  CString GetMyEditorCommandLine(CString sMMLFile, int nLine)
+  CString GetMyEditorCommandLine(CString sMMLFile, int nLine = 1)
   {
     CString s = m_sMyEditorWithLine, st;
     st.Format("%d", nLine);
@@ -67,7 +61,20 @@ private:
     {
       CloseHandle(pi.hThread);
       CloseHandle(pi.hProcess);
-    }
+    } else {
+		DWORD err = GetLastError();
+		TCHAR szMessage[4096];
+		CString msg(_T("プロセスを起動できませんでした。"));
+
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, szMessage, sizeof szMessage, NULL);
+
+		msg += _T("\n\n");
+		msg += szCmdLine.GetBuffer(255);
+		msg += _T("\n\n");
+		msg += szMessage;
+
+		MessageBox(NULL, msg.GetBuffer(255), _T("プロセス起動失敗"), 0);
+	}
   }
 public:
   CPreferences() : m_bUseMyEditor(false), m_bUseMyPlayer(false),
