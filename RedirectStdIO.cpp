@@ -1,188 +1,126 @@
 #include "stdafx.h"
-
-// ŒöŠJŠÖ”‚Ìà–¾‚Íƒwƒbƒ_‚É‚ ‚é
 #include "RedirectStdIO.h"
 
-// ƒfƒtƒHƒ‹ƒgƒoƒbƒtƒ@ƒTƒCƒY
-#define BUFFER_SIZE 8192
-// “ü—Í‘Ò‚¿ó‘Ô‚É‚È‚é‚Ì‚ğ‘Ò‚ÂŠÔ
-#define WAIT_FOR_READY 1000
-// stdin/stdout/stderr ‚ğöó‚·‚éƒ‹[ƒv‚Ì’†‚Å‚ÌƒEƒFƒCƒg
-#define WAIT_FOR_RUN 1
-
-// ƒpƒCƒvƒnƒ“ƒhƒ‹‚Ìƒ‰ƒbƒp
-typedef struct tagPipe
+DWORD StdIORedirector::Run(LPCTSTR pszCommandLine, WORD wShowWindow)
 {
-  HANDLE hRead;
-  HANDLE hWrite;
-}Pipe;
+	DWORD ret = -1;
 
-// ŠÖ”“à•”‚Å—˜—p‚·‚éƒRƒ“ƒeƒLƒXƒg
-typedef struct tagRedirStdIOContext
-{
-  Pipe StdIn;
-  Pipe StdOut;
-  Pipe StdErr;
-  HANDLE hStdInWritePipeDup; // stdin ‚ğ—^‚¦‚é‚Æ‚«‚Í‚±‚¢‚Â‚É‘‚«‚Ş
+	SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), nullptr, TRUE };
 
-  fnWriteStdIn pfnWriteStdIn;
-  fnReadStdOutErr pfnReadStdOut;
-  fnReadStdOutErr pfnReadStdErr;
-  LPVOID lpUser;
+	// ãƒ‘ã‚¤ãƒ—ä½œã‚Šã¾ãã‚Š
+	StdIn = Pipe(dwBufferSize);
+	DuplicateHandle(GetCurrentProcess(), StdIn.hWrite, GetCurrentProcess(), &hStdInWritePipeDup, 0, FALSE, DUPLICATE_SAME_ACCESS);
+	StdIn.CloseWrite();
 
-  BYTE* pbyBuffer;           // “]‘—ƒoƒbƒtƒ@
-  DWORD dwBufferSize;        // ƒoƒbƒtƒ@ƒTƒCƒY
-}RedirStdIOContext;
+	StdOut = Pipe(dwBufferSize);
+	StdErr = Pipe(dwBufferSize);
 
-// stdin/stdout/stderr ‚ğƒR[ƒ‹ƒoƒbƒN‚ğŒÄ‚Ño‚µ‚Äˆ—‚·‚éB
-BOOL PumpPipe(RedirStdIOContext* pContext);
-// hPipe ‚ÌƒpƒCƒv‚Ö pfnWriteStdIn ‚©‚ç“¾‚½ƒf[ƒ^‚ğ‘‚«‚Ş
-BOOL WriteToPipe(RedirStdIOContext* pContext, HANDLE hPipe, fnWriteStdIn pfnWriteStdIn);
-// hPipe ‚©‚ç“¾‚½ƒf[ƒ^‚ğ pfnReadStdOutErr ‚Ö“n‚·
-BOOL ReadFromPipe(RedirStdIOContext* pContext, HANDLE hPipe, fnReadStdOutErr pfnReadStdOutErr);
+	STARTUPINFO si = { sizeof(STARTUPINFO) };
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	si.wShowWindow = wShowWindow;
+	si.hStdInput = StdIn.hRead;
+	si.hStdOutput = StdOut.hWrite;
+	si.hStdError = StdErr.hWrite;
 
-DWORD RedirectStdIO(LPSTR pszCommandLine,
-                    fnWriteStdIn pfnWriteStdIn,
-                    fnReadStdOutErr pfnReadStdOut,
-                    fnReadStdOutErr pfnReadStdErr,
-                    DWORD* pdwReturnCode,
-                    LPVOID lpUser,
-                    DWORD dwDefaultBufferSize,
-                    WORD wShowWindow
-                   )
-{
-  RedirStdIOContext context;
-  ZeroMemory(&context, sizeof(RedirStdIOContext));
+	PROCESS_INFORMATION pi;
+	// ã‚Œã£ã¤èµ·å‹•
+	if (CreateProcess(nullptr, const_cast<LPTSTR>(pszCommandLine), &sa, nullptr,
+		TRUE, DETACHED_PROCESS | CREATE_NO_WINDOW,
+		nullptr, nullptr, &si, &pi))
+	{
+		// å…¥åŠ›å¾…ã¡ã«å…¥ã‚‹ã¾ã§å¾…ã£ã¦ã¦ã‚„ã‚‹
+		WaitForInputIdle(pi.hProcess, WAIT_FOR_READY);
 
-  context.pfnWriteStdIn = pfnWriteStdIn;
-  context.pfnReadStdOut = pfnReadStdOut;
-  context.pfnReadStdErr = pfnReadStdErr;
-  context.lpUser = lpUser;
+		// stdin ä¸è¦ãªã‚‰å…ˆã«é–‰ã˜ã¦ã—ã¾ã†
+		if (!pfnWriteStdIn)
+			CloseHandle(hStdInWritePipeDup);
 
-  SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
+		// è»¢é€ç”¨ãƒãƒƒãƒ•ã‚¡ã€‚
+		pbyBuffer = std::make_unique<BYTE[]>(dwBufferSize);
 
-  context.dwBufferSize = dwDefaultBufferSize;
-  // ƒfƒtƒHƒ‹ƒgƒoƒbƒtƒ@ƒTƒCƒY
-  if(context.dwBufferSize <= 0) context.dwBufferSize = BUFFER_SIZE;
+		DWORD dwRet;
+		do
+		{
+			// ãƒãƒ³ãƒ—ã‚’å‹•ã‹ã™
+			if (!PumpPipe())
+				break;
+			dwRet = WaitForSingleObject(pi.hProcess, WAIT_FOR_RUN);
+		} while (dwRet != WAIT_OBJECT_0); // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ—ãƒ­ã‚»ã‚¹ãŒç”Ÿãã¦ã„ã‚‹é–“
 
-  // ƒpƒCƒvì‚è‚Ü‚­‚è
-  CreatePipe(&context.StdIn.hRead, &context.StdIn.hWrite, &sa, context.dwBufferSize);
-  DuplicateHandle(GetCurrentProcess(), context.StdIn.hWrite, GetCurrentProcess(), &context.hStdInWritePipeDup, 0, FALSE, DUPLICATE_SAME_ACCESS);
-  CloseHandle(context.StdIn.hWrite);
-  CreatePipe(&context.StdOut.hRead, &context.StdOut.hWrite, &sa, context.dwBufferSize);
-  CreatePipe(&context.StdErr.hRead, &context.StdErr.hWrite, &sa, context.dwBufferSize);
+		while (true)
+		{
+			DWORD dwBytesInStdOut = 0, dwBytesInStdErr = 0;
+			const BOOL rOut = PeekNamedPipe(StdOut.hRead, nullptr, 0, nullptr, &dwBytesInStdOut, nullptr);
+			const BOOL rErr = PeekNamedPipe(StdErr.hRead, nullptr, 0, nullptr, &dwBytesInStdErr, nullptr);
+			if ((!rOut && !rErr) || (!dwBytesInStdOut && !dwBytesInStdErr))
+				break;
+			PumpPipe();             // æ›¸ãæ®‹ã—ã€èª­ã¿æ®‹ã—ã¯ãªã„ã‹ï¼Ÿ
+			Sleep(WAIT_FOR_RUN);
+		}
 
-  STARTUPINFO si = { sizeof(STARTUPINFO) };
+		pbyBuffer.reset();
 
-  si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-  si.wShowWindow = wShowWindow;
-  si.hStdInput = context.StdIn.hRead;
-  si.hStdOutput = context.StdOut.hWrite;
-  si.hStdError = context.StdErr.hWrite;
-
-  PROCESS_INFORMATION pi;
-  // ‚ê‚Á‚Â‹N“®
-  BOOL r = CreateProcess(NULL, pszCommandLine, &sa, NULL, TRUE, DETACHED_PROCESS | CREATE_NO_WINDOW,
-                         NULL, NULL, &si, &pi);
-  if(r)
-  {
-    // “ü—Í‘Ò‚¿‚É“ü‚é‚Ü‚Å‘Ò‚Á‚Ä‚Ä‚â‚é
-    WaitForInputIdle(pi.hProcess, WAIT_FOR_READY);
-
-    // stdin •s—v‚È‚çæ‚É•Â‚¶‚Ä‚µ‚Ü‚¤
-    if(!context.pfnWriteStdIn)
-      CloseHandle(context.hStdInWritePipeDup);
-
-    // “]‘——pƒoƒbƒtƒ@B
-    context.pbyBuffer = new BYTE[context.dwBufferSize];
-
-    DWORD dwRet;
-    do
-    {
-      // ƒ|ƒ“ƒv‚ğ“®‚©‚·
-      if(!PumpPipe(&context))
-        break;
-      dwRet = WaitForSingleObject(pi.hProcess, WAIT_FOR_RUN);
-    }while(dwRet != WAIT_OBJECT_0); // ƒ^[ƒQƒbƒgƒvƒƒZƒX‚ª¶‚«‚Ä‚¢‚éŠÔ
-
-    DWORD dwBytesInStdOut = 0, dwBytesInStdErr = 0;
-    while(1)
-    {
-      BOOL r;
-      r = PeekNamedPipe(context.StdOut.hRead, NULL, 0, NULL, &dwBytesInStdOut, NULL);
-      r = r && PeekNamedPipe(context.StdErr.hRead, NULL, 0, NULL, &dwBytesInStdErr, NULL);
-      if(!r || (!dwBytesInStdOut && !dwBytesInStdErr))
-        break;
-      PumpPipe(&context);             // ‘‚«c‚µA“Ç‚İc‚µ‚Í‚È‚¢‚©H
-      Sleep(WAIT_FOR_RUN);
-    }
-
-    delete[] context.pbyBuffer;
-
-    // I—¹ƒR[ƒh
-    if(pdwReturnCode) GetExitCodeProcess(pi.hProcess, pdwReturnCode);
-    CloseHandle(pi.hThread);
-    CloseHandle(pi.hProcess);
-  }
-  // Œãn––
-  CloseHandle(context.StdIn.hRead);
-  CloseHandle(context.StdOut.hRead); CloseHandle(context.StdOut.hWrite);
-  CloseHandle(context.StdErr.hRead); CloseHandle(context.StdErr.hWrite);
-
-  return r;
+		// çµ‚äº†ã‚³ãƒ¼ãƒ‰
+		GetExitCodeProcess(pi.hProcess, &ret);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+	else
+	{
+		CloseHandle(hStdInWritePipeDup);
+	}
+	return ret;
 }
 
-// ƒpƒCƒv‚©‚ç“Ç‚ñ‚ÅƒR[ƒ‹ƒoƒbƒN‚É“n‚·
-BOOL ReadFromPipe(RedirStdIOContext* pContext, HANDLE hPipe, fnReadStdOutErr pfnReadStdOutErr)
+// ãƒ‘ã‚¤ãƒ—ã‹ã‚‰èª­ã‚“ã§ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã«æ¸¡ã™
+BOOL StdIORedirector::ReadFromPipe(HANDLE hPipe, const ReadWriteCallback& pfnReadStdOutErr) const
 {
-  DWORD dwBytesAvail = 0, dwBytesRead = 0;
-  // ƒpƒCƒv‚É‰½‚©—ˆ‚Ä‚éH
-  if(PeekNamedPipe(hPipe, NULL, 0, NULL, &dwBytesAvail, NULL))
-  {
-    if(!dwBytesAvail) return TRUE; // ƒpƒCƒv‚É‰½‚à‚È‚µFˆ—‚Í¬Œ÷
+	DWORD dwBytesAvail = 0, dwBytesRead = 0;
+	// ãƒ‘ã‚¤ãƒ—ã«ä½•ã‹æ¥ã¦ã‚‹ï¼Ÿ
+	if (PeekNamedPipe(hPipe, nullptr, 0, nullptr, &dwBytesAvail, nullptr))
+	{
+		if (!dwBytesAvail) return TRUE; // ãƒ‘ã‚¤ãƒ—ã«ä½•ã‚‚ãªã—ï¼šå‡¦ç†ã¯æˆåŠŸ
 
-    // “]‘—ƒoƒbƒtƒ@ƒTƒCƒY‚æ‚è‚à‘å‚«‚¢ƒf[ƒ^‚ª“Í‚¢‚½
-    if(dwBytesAvail > pContext->dwBufferSize) dwBytesAvail = pContext->dwBufferSize;
+		// è»¢é€ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚ºã‚ˆã‚Šã‚‚å¤§ãã„ãƒ‡ãƒ¼ã‚¿ãŒå±Šã„ãŸ
+		if (dwBytesAvail > dwBufferSize) dwBytesAvail = dwBufferSize;
 
-    if(ReadFile(hPipe, pContext->pbyBuffer, dwBytesAvail, &dwBytesRead, NULL))
-    {
-      if(pfnReadStdOutErr)
-        return pfnReadStdOutErr(pContext->pbyBuffer, dwBytesRead, &dwBytesRead, pContext->lpUser);
-      return TRUE; // ƒR[ƒ‹ƒoƒbƒN‚Íİ’è‚³‚ê‚Ä‚¢‚È‚¢‚ªƒoƒbƒtƒ@‚©‚ç“f‚«o‚·•K—v‚ª‚ ‚é
-    }
-  }
-  return FALSE; // ƒpƒCƒv‚ğ”`‚¯‚È‚¢FƒGƒ‰[
+		if (ReadFile(hPipe, pbyBuffer.get(), dwBytesAvail, &dwBytesRead, nullptr))
+		{
+			if (pfnReadStdOutErr)
+				return pfnReadStdOutErr(pbyBuffer.get(), dwBytesRead, &dwBytesRead);
+			return TRUE; // ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã¯è¨­å®šã•ã‚Œã¦ã„ãªã„ãŒãƒãƒƒãƒ•ã‚¡ã‹ã‚‰åãå‡ºã™å¿…è¦ãŒã‚ã‚‹
+		}
+	}
+	return FALSE; // ãƒ‘ã‚¤ãƒ—ã‚’è¦—ã‘ãªã„ï¼šã‚¨ãƒ©ãƒ¼
 }
 
-// ƒR[ƒ‹ƒoƒbƒN‚©‚ç‚à‚ç‚Á‚ÄƒpƒCƒv‚É‘‚­
-BOOL WriteToPipe(RedirStdIOContext* pContext, HANDLE hPipe, fnWriteStdIn pfnWriteStdIn)
+// ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‹ã‚‰ã‚‚ã‚‰ã£ã¦ãƒ‘ã‚¤ãƒ—ã«æ›¸ã
+BOOL StdIORedirector::WriteToPipe(HANDLE hPipe, const ReadWriteCallback& pfnWriteStdIn) const
 {
-  DWORD dwBytesWritten = 0;
-  BOOL bCallbackResult = pfnWriteStdIn(pContext->pbyBuffer, pContext->dwBufferSize, &dwBytesWritten, pContext->lpUser);
+	DWORD dwBytesWritten = 0;
+	const BOOL bCallbackResult = pfnWriteStdIn(pbyBuffer.get(), dwBufferSize, &dwBytesWritten);
 
-  if(!WriteFile(hPipe, pContext->pbyBuffer, dwBytesWritten, &dwBytesWritten, NULL))
-    return FALSE;
+	if (!WriteFile(hPipe, pbyBuffer.get(), dwBytesWritten, &dwBytesWritten, nullptr))
+		return FALSE;
 
-  return bCallbackResult;
+	return bCallbackResult;
 }
 
-// ƒ|ƒ“ƒv‚ğ‰ñ‚·
-BOOL PumpPipe(RedirStdIOContext* pContext)
+// ãƒãƒ³ãƒ—ã‚’å›ã™
+BOOL StdIORedirector::PumpPipe()
 {
-  BOOL r = TRUE;
-  if(pContext->pfnWriteStdIn)
-  {
-    // stdin ‚ğ—^‚¦‚é
-    if(!WriteToPipe(pContext, pContext->hStdInWritePipeDup, pContext->pfnWriteStdIn))
-    {
-      // ƒR[ƒ‹ƒoƒbƒN‚©‚ç FALSE ‚ª•Ô‚Á‚Ä‚«‚½F‚à‚¤—^‚¦‚éƒf[ƒ^‚Í‚È‚¢
-      CloseHandle(pContext->hStdInWritePipeDup);
-      pContext->pfnWriteStdIn = NULL;
-    }
-  }
+	if (pfnWriteStdIn)
+	{
+		// stdin ã‚’ä¸ãˆã‚‹
+		if (!WriteToPipe(hStdInWritePipeDup, pfnWriteStdIn))
+		{
+			// ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‹ã‚‰ FALSE ãŒè¿”ã£ã¦ããŸï¼šã‚‚ã†ä¸ãˆã‚‹ãƒ‡ãƒ¼ã‚¿ã¯ãªã„
+			CloseHandle(hStdInWritePipeDup);
+			pfnWriteStdIn = nullptr;
+		}
+	}
 
-  // ‚Ç‚¿‚ç‚©‚ÌƒR[ƒ‹ƒoƒbƒN‚ª‚à‚¤ƒf[ƒ^‚Í‚¢‚ç‚ñ‚ÆŒ¾‚¤‚Ü‚Å
-  r = r && ReadFromPipe(pContext, pContext->StdOut.hRead, pContext->pfnReadStdOut);
-  r = r && ReadFromPipe(pContext, pContext->StdErr.hRead, pContext->pfnReadStdErr);
-  return r;
+	const BOOL rOut = ReadFromPipe(StdOut.hRead, pfnReadStdOut);
+	const BOOL rErr = ReadFromPipe(StdErr.hRead, pfnReadStdErr);
+	return rOut || rErr;
 }

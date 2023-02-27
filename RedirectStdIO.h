@@ -1,47 +1,113 @@
 /*
  * RedirectStdIO.h
- *   ƒRƒ“ƒ\[ƒ‹ƒŠƒ_ƒCƒŒƒNƒVƒ‡ƒ“
+ *   ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
  */
 #if !defined(REDIRECTSTDIO_H)
 #define REDIRECTSTDIO_H
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #pragma comment(lib, "user32.lib")
 
-// ƒ^[ƒQƒbƒgƒAƒvƒŠ‚Ì stdin ‚Æ‚µ‚Ä—^‚¦‚éƒf[ƒ^‚ğ pBuffer ‚ÖƒRƒs[‚·‚éB
-// out LPVOID pBuffer          ƒ^[ƒQƒbƒg‚Ì stdin ‚Æ‚µ‚Ä—^‚¦‚½‚¢ƒf[ƒ^‚ğ‚±‚±‚Ö
-//                             ƒRƒs[‚·‚é‚½‚ß‚Ìƒoƒbƒtƒ@B
-// in  DWORD dwBufferSize      pBuffer ‚ÌƒTƒCƒYB
-// out DWORD* pdwBytesWritten  pBuffer ‚ÉÀÛ‚É‘‚«‚ñ‚¾ƒoƒCƒg”‚ğ•Ô‚·B
-// i/o LPVOID lpUser           RedirectStdIO() ‚É“n‚µ‚½ lpUser.  —p“r‚Í”CˆÓB
-// ret BOOL                    ‘±‚«‚Ìƒf[ƒ^‚ª‚ ‚é‚Æ‚« TRUE
-typedef BOOL (CALLBACK *fnWriteStdIn)(LPVOID pBuffer, DWORD dwBufferSize, DWORD* pdwBytesWritten, LPVOID lpUser);
+class StdIORedirector
+{
+public:
+	using ReadWriteCallback = std::function<BOOL(LPVOID pBuffer, DWORD dwBufferSize, DWORD* pdwBytesReadOrWritten)>;
 
-// ƒ^[ƒQƒbƒgƒAƒvƒŠ‚ª“f‚¢‚½ stdout ‚â stderr ‚ğ pBuffer ‚©‚çó‚¯æ‚é
-// in  LPVOID pBuffer          ƒ^[ƒQƒbƒgƒAƒvƒŠ‚ª“f‚¢‚½ stdout/stderr ‚Ìƒf[ƒ^
-// in  DWORD dwBufferSize      pBuffer ‚ÉÀÛ‚É“ü‚Á‚Ä‚¢‚éƒoƒCƒg”B
-// out DWORD* pdwBytesRead     pBuffer ‚©‚ç“Ç‚İæ‚Á‚½ƒoƒCƒg”‚ğ•Ô‚·B
-// i/o LPVOID lpUser           RedirectStdIO() ‚É“n‚µ‚½ lpUser.  —p“r‚Í”CˆÓB
-// ret BOOL                    ‚à‚Á‚Æƒf[ƒ^‚ª‚Ù‚µ‚¯‚ê‚Î TRUE
-typedef BOOL (CALLBACK *fnReadStdOutErr)(LPVOID pBuffer, DWORD dwBufferSize, DWORD* pdwBytesRead, LPVOID lpUser);
+	StdIORedirector() = default;
 
-// ƒRƒ“ƒ\[ƒ‹ƒAƒvƒŠ‚Ì•W€“üo—Í‚ğ‰¡æ‚è‚·‚éiŒ³‚É‚Í•Ô‚³‚È‚¢j
-DWORD RedirectStdIO(LPSTR pszCommandLine,         // ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“
-                    fnWriteStdIn pfnWriteStdIn,   // stdin ‚ğ—^‚¦‚éƒR[ƒ‹ƒoƒbƒN
-                    fnReadStdOutErr pfnReadStdOut,// stdout ‚ğó‚¯æ‚é callback
-                    fnReadStdOutErr pfnReadStdErr,// stderr ‚ğó‚¯æ‚é callback
-                    DWORD* pdwReturnCode,         // ƒRƒ“ƒ\[ƒ‹ƒAƒvƒŠ‚Ì–ß‚è’l
-                    LPVOID lpUser,                // callback ‚Ö“n‚·”CˆÓ‚Ì’l
-                    DWORD dwBufferSize,           // ‰Šúƒoƒbƒtƒ@ƒTƒCƒYB
-                                                  // 0 ‚ÅƒfƒtƒHƒ‹ƒg
-                    WORD wShowWindow = SW_SHOW    // ƒEƒBƒ“ƒhƒE‚Ì•\¦‚Ìd•ûB
-                                                  // ShowWindow() ‚Ìˆø”B
-                   );
+	explicit StdIORedirector(
+		ReadWriteCallback writeStdIn,
+		ReadWriteCallback readStdOut,
+		ReadWriteCallback readStdErr,
+		DWORD dwBufferSize = BUFFER_SIZE
+	) : pfnWriteStdIn(std::move(writeStdIn)), pfnReadStdOut(std::move(readStdOut)), pfnReadStdErr(std::move(readStdErr)), dwBufferSize(dwBufferSize)
+	{
 
-// ‚¨‚Ü‚¯FWin32 ‚Ìƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚©‚ç stdio ‚Ì FILE* ‚ğ“¾‚éB
-// mode ‚Í fopen() ‚Ì mode ˆø”B
+	}
+
+	DWORD Run(LPCTSTR szCommandLine, WORD wShowWindow = SW_HIDE);
+
+
+private:
+	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º
+	static constexpr int BUFFER_SIZE = 8192;
+	// å…¥åŠ›å¾…ã¡çŠ¶æ…‹ã«ãªã‚‹ã®ã‚’å¾…ã¤æ™‚é–“
+	static constexpr int WAIT_FOR_READY = 1000;
+	// stdin/stdout/stderr ã‚’æˆå—ã™ã‚‹ãƒ«ãƒ¼ãƒ—ã®ä¸­ã§ã®ã‚¦ã‚§ã‚¤ãƒˆ
+	static constexpr int WAIT_FOR_RUN = 20;
+
+	struct Pipe
+	{
+		HANDLE hRead{ INVALID_HANDLE_VALUE };
+		HANDLE hWrite{ INVALID_HANDLE_VALUE };
+
+		Pipe() = default;
+		Pipe(HANDLE hR, HANDLE hW) : hRead(hR), hWrite(hW)
+		{
+		}
+		explicit Pipe(DWORD dwBufferSize, BOOL bInheritHandle = TRUE)
+		{
+			SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), nullptr, bInheritHandle };
+			::CreatePipe(&hRead, &hWrite, &sa, dwBufferSize);
+		}
+		Pipe(const Pipe& other) = delete;
+		Pipe& operator=(const Pipe& other) = delete;
+
+		Pipe(Pipe&& other) noexcept
+		{
+			*this = std::move(other);
+		}
+
+		Pipe& operator=(Pipe&& other) noexcept
+		{
+			if (this == &other)
+				return *this;
+
+			CloseRead();
+			hRead = other.hRead;
+			CloseWrite();
+			hWrite = other.hWrite;
+
+			other.hRead = other.hWrite = INVALID_HANDLE_VALUE;
+			return *this;
+		}
+
+		virtual ~Pipe()
+		{
+			CloseRead();
+			CloseWrite();
+		}
+
+		void CloseRead()
+		{
+			if (hRead != INVALID_HANDLE_VALUE)
+				::CloseHandle(hRead);
+			hRead = INVALID_HANDLE_VALUE;
+		}
+		void CloseWrite()
+		{
+			if (hWrite != INVALID_HANDLE_VALUE)
+				::CloseHandle(hWrite);
+			hWrite = INVALID_HANDLE_VALUE;
+		}
+	};
+
+	Pipe StdIn, StdOut, StdErr;
+	HANDLE hStdInWritePipeDup{ INVALID_HANDLE_VALUE }; // stdin ã‚’ä¸ãˆã‚‹ã¨ãã¯ã“ã„ã¤ã«æ›¸ãè¾¼ã‚€
+
+	ReadWriteCallback pfnWriteStdIn, pfnReadStdOut, pfnReadStdErr;
+
+	std::unique_ptr<BYTE[]> pbyBuffer;           // è»¢é€ãƒãƒƒãƒ•ã‚¡
+	DWORD dwBufferSize{ BUFFER_SIZE };        // ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º
+
+
+	BOOL PumpPipe();
+	BOOL WriteToPipe(HANDLE hPipe, const ReadWriteCallback& pfnWriteStdIn) const;
+	BOOL ReadFromPipe(HANDLE hPipe, const ReadWriteCallback& pfnReadStdOutErr) const;
+};
+
+
+// ãŠã¾ã‘ï¼šWin32 ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã‹ã‚‰ stdio ã® FILE* ã‚’å¾—ã‚‹ã€‚
+// mode ã¯ fopen() ã® mode å¼•æ•°ã€‚
 FILE* GetStdioStreamFromWin32Handle(HANDLE hWin32Handle, char* mode);
 
 #endif // !REDIRECTSTDIO_H

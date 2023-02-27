@@ -14,15 +14,15 @@
 
 BOOL CMainDlg::PreTranslateMessage(MSG* pMsg)
 {
-  if((!m_acc.IsNull() && m_acc.TranslateAccelerator(m_hWnd, pMsg)))
-    return TRUE;
+	if ((!m_acc.IsNull() && m_acc.TranslateAccelerator(m_hWnd, pMsg)))
+		return TRUE;
 
 	return IsDialogMessage(pMsg);
 }
 
 BOOL CMainDlg::OnIdle()
 {
-  UIUpdateChildWindows();
+	UIUpdateChildWindows();
 	return FALSE;
 }
 
@@ -31,22 +31,24 @@ LRESULT CMainDlg::OnInitDialog(HWND /*hWnd*/, LPARAM /*lParam*/)
 	// center the dialog on the screen
 	CenterWindow();
 
-  //GetModuleFileName(GetModuleHandle(NULL), m_szAppPath, MAX_PATH);
-  //PathRemoveFileSpec(m_szAppPath);
-  //SetCurrentDirectory(m_szAppPath);
+	//GetModuleFileName(GetModuleHandle(NULL), m_szAppPath, MAX_PATH);
+	//PathRemoveFileSpec(m_szAppPath);
+	//SetCurrentDirectory(m_szAppPath);
 
-  m_pref.LoadDefaultSettings();
-  m_pref.LoadFromRegistry();
+	m_pref.LoadDefaultSettings();
+	m_pref.LoadFromRegistry();
 
 	// set icons
-	HICON hIcon = (HICON)::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_MAINFRAME), 
-		IMAGE_ICON, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON), LR_DEFAULTCOLOR);
+	auto hIcon = static_cast<HICON>(::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_MAINFRAME),
+	                                            IMAGE_ICON, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON),
+	                                            LR_DEFAULTCOLOR));
 	SetIcon(hIcon, TRUE);
-	HICON hIconSmall = (HICON)::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_MAINFRAME), 
-		IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
+	auto hIconSmall = static_cast<HICON>(::LoadImage(_Module.GetResourceInstance(), MAKEINTRESOURCE(IDR_MAINFRAME),
+	                                                 IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON),
+	                                                 LR_DEFAULTCOLOR));
 	SetIcon(hIconSmall, FALSE);
 
-  m_acc.LoadAccelerators(IDR_MAINFRAME);
+	m_acc.LoadAccelerators(IDR_MAINFRAME);
 
 	// register object for message filtering and idle updates
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
@@ -55,67 +57,67 @@ LRESULT CMainDlg::OnInitDialog(HWND /*hWnd*/, LPARAM /*lParam*/)
 	pLoop->AddIdleHandler(this);
 
 	UIAddChildWindowContainer(m_hWnd);
-  
-  m_edMMLFile = GetDlgItem(IDC_MMLFILEEDIT);
-  m_edSMFFile = GetDlgItem(IDC_SMFFILEEDIT);
-  m_edMessage = GetDlgItem(IDC_MSGEDIT);
 
-  // ƒgƒ‰ƒ“ƒXƒ|[ƒYŠÖŒW
-  m_udTranspose = GetDlgItem(IDC_TRSANSPOSESPIN); m_udTranspose.SetRange(-12, 12);
-  m_edTranspose = GetDlgItem(IDC_TRANSPOSEEDIT); m_edTranspose.SetWindowText("0");
+	m_edMMLFile = GetDlgItem(IDC_MMLFILEEDIT);
+	m_edSMFFile = GetDlgItem(IDC_SMFFILEEDIT);
+	m_edMessage = GetDlgItem(IDC_MSGEDIT);
 
-  // ƒfƒtƒHƒ‹ƒg‚Å Format 1 ‚ğg‚¤
-  UISetCheck(IDC_SMFFORMAT1RADIO, TRUE);
+	// ãƒˆãƒ©ãƒ³ã‚¹ãƒãƒ¼ã‚ºé–¢ä¿‚
+	m_udTranspose = GetDlgItem(IDC_TRSANSPOSESPIN); m_udTranspose.SetRange(-12, 12);
+	m_edTranspose = GetDlgItem(IDC_TRANSPOSEEDIT); m_edTranspose.SetWindowText(_T("0"));
 
-  // ƒŠƒXƒgƒrƒ…[‚Ì€”õ
-  m_lvMessages = GetDlgItem(IDC_MESSAGELIST);
-  m_lvMessages.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
+	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§ Format 1 ã‚’ä½¿ã†
+	UISetCheck(IDC_SMFFORMAT1RADIO, TRUE);
 
-  {
-    CImageList il;
-    il.Create(16, 16, ILC_COLOR8 | ILC_MASK, 2, 1);
+	// ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®æº–å‚™
+	m_lvMessages = GetDlgItem(IDC_MESSAGELIST);
+	m_lvMessages.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT);
 
-    // ƒrƒbƒgƒ}ƒbƒvƒŠƒ\[ƒX‚ğƒCƒ[ƒWƒŠƒXƒg‚É’Ç‰Á
-    { CBitmap bmp; bmp.LoadBitmap(IDB_INFO); il.Add(bmp, RGB(255, 0, 255)); }
-    { CBitmap bmp; bmp.LoadBitmap(IDB_WARNING); il.Add(bmp, RGB(255, 0, 255)); }
-    { CBitmap bmp; bmp.LoadBitmap(IDB_ERROR); il.Add(bmp, RGB(255, 0, 255)); }
+	{
+		CImageList il;
+		il.Create(16, 16, ILC_COLOR8 | ILC_MASK, 2, 1);
 
-    // ƒCƒ[ƒWƒŠƒXƒg‚ğƒŠƒXƒgƒrƒ…[ƒRƒ“ƒgƒ[ƒ‹‚Éİ’è
-    m_lvMessages.SetImageList(il, LVSIL_SMALL);
-  }
+		// ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ãƒªã‚½ãƒ¼ã‚¹ã‚’ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒªã‚¹ãƒˆã«è¿½åŠ 
+		{ CBitmap bmp; bmp.LoadBitmap(IDB_INFO); il.Add(bmp, RGB(255, 0, 255)); }
+		{ CBitmap bmp; bmp.LoadBitmap(IDB_WARNING); il.Add(bmp, RGB(255, 0, 255)); }
+		{ CBitmap bmp; bmp.LoadBitmap(IDB_ERROR); il.Add(bmp, RGB(255, 0, 255)); }
 
-  // ƒŠƒXƒgƒrƒ…[‚ÉƒJƒ‰ƒ€‚ğ—pˆÓ‚·‚é
-  {
-    CRect rcList;
-    m_lvMessages.GetWindowRect(rcList);
-    int nScrollWidth = GetSystemMetrics(SM_CXVSCROLL);
-    int n3DEdge = GetSystemMetrics(SM_CXEDGE);
-    m_lvMessages.InsertColumn(0, _T("ƒƒbƒZ[ƒW"), LVCFMT_LEFT,
-                              rcList.Width() - nScrollWidth - n3DEdge * 2, -1);
-  }
-  UIEnable(IDC_COMPILEBUTTON, FALSE);
-  UIEnable(IDC_EDITBUTTON, FALSE);
-  UIEnable(IDC_PLAYBUTTON, FALSE);
+		// ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒªã‚¹ãƒˆã‚’ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã«è¨­å®š
+		m_lvMessages.SetImageList(il, LVSIL_SMALL);
+	}
 
-  m_mnuMenu = GetMenu();
-  m_mnuMenu.EnableMenuItem(IDM_COMPILE, MF_GRAYED);
-  m_mnuMenu.EnableMenuItem(IDM_PLAY, MF_GRAYED);
-  m_mnuMenu.EnableMenuItem(IDM_EDIT, MF_GRAYED);
+	// ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã‚«ãƒ©ãƒ ã‚’ç”¨æ„ã™ã‚‹
+	{
+		CRect rcList;
+		m_lvMessages.GetWindowRect(rcList);
+		int nScrollWidth = GetSystemMetrics(SM_CXVSCROLL);
+		int n3DEdge = GetSystemMetrics(SM_CXEDGE);
+		m_lvMessages.InsertColumn(0, _T("ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸"), LVCFMT_LEFT,
+			rcList.Width() - nScrollWidth - n3DEdge * 2, -1);
+	}
+	UIEnable(IDC_COMPILEBUTTON, FALSE);
+	UIEnable(IDC_EDITBUTTON, FALSE);
+	UIEnable(IDC_PLAYBUTTON, FALSE);
 
-  CVersionInfo info(NULL);
-  CHAR szStringFileVersion[32];
-  info.FormatFileVersion(szStringFileVersion, sizeof szStringFileVersion);
-  CHAR szFormattedVersion[128];
-  sprintf_s(szFormattedVersion, sizeof szFormattedVersion, "MML2MIDfe Version %s", szStringFileVersion);
+	m_mnuMenu = GetMenu();
+	m_mnuMenu.EnableMenuItem(IDM_COMPILE, MF_GRAYED);
+	m_mnuMenu.EnableMenuItem(IDM_PLAY, MF_GRAYED);
+	m_mnuMenu.EnableMenuItem(IDM_EDIT, MF_GRAYED);
 
-  AddMessage(_T(szFormattedVersion));
+	CVersionInfo info(nullptr);
+	CHAR szStringFileVersion[32];
+	info.FormatFileVersion(szStringFileVersion, sizeof szStringFileVersion);
+	CHAR szFormattedVersion[128];
+	sprintf_s(szFormattedVersion, sizeof szFormattedVersion, "MML2MIDfe Version %s", szStringFileVersion);
 
-  // mml2mid ‚Ìƒo[ƒWƒ‡ƒ“î•ñ‚ğæ“¾
-  CString s;
-  if(GetMML2MIDBanner(m_pref.GetMML2MIDSetting(), s))
-    AddMessage(s);
-  else
-    AddMessage(_T("ERROR! mml2mid.exe ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½D\r\nuİ’èv‚Å³‚µ‚¢ƒpƒX‚ğw’è‚µ‚Ä‚­‚¾‚³‚¢D"));
+	AddMessage(szFormattedVersion);
+
+	// mml2mid ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±ã‚’å–å¾—
+	CString s;
+	if (GetMML2MIDBanner(m_pref.GetMML2MIDSetting(), s))
+		AddMessage(s);
+	else
+		AddMessage(_T("ERROR! mml2mid.exe ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸï¼\r\nã€Œè¨­å®šã€ã§æ­£ã—ã„ãƒ‘ã‚¹ã‚’æŒ‡å®šã—ã¦ãã ã•ã„ï¼"));
 
 	return TRUE;
 }
@@ -128,267 +130,264 @@ LRESULT CMainDlg::OnCancel(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/)
 
 void CMainDlg::CloseDialog(int nVal)
 {
-  m_pref.SaveToRegistry();
+	m_pref.SaveToRegistry();
 	DestroyWindow();
 	::PostQuitMessage(nVal);
 }
 
 LRESULT CMainDlg::OnBnClickedBrowsemmlbutton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  // TODO : ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
-  CFileDialog fdOpenFile(TRUE, _T("*.mml"), NULL, OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT, _T("MML ƒtƒ@ƒCƒ‹ (*.mml)\0*.mml\0‚·‚×‚Ä‚Ìƒtƒ@ƒCƒ‹\0*.*\0\0"));
+	// TODO : ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ© ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
+	CFileDialog fdOpenFile(TRUE, _T("*.mml"), nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("MML ãƒ•ã‚¡ã‚¤ãƒ« (*.mml)\0*.mml\0ã™ã¹ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«\0*.*\0\0"));
 
-  m_edMMLFile.GetWindowText(fdOpenFile.m_szFileName, sizeof fdOpenFile.m_szFileName);
-  if(fdOpenFile.DoModal() == IDOK)
-  {
-    m_edMMLFile.SetWindowText(fdOpenFile.m_szFileName);
+	m_edMMLFile.GetWindowText(fdOpenFile.m_szFileName, MAX_PATH);
+	if (fdOpenFile.DoModal() == IDOK)
+	{
+		m_edMMLFile.SetWindowText(fdOpenFile.m_szFileName);
 
-    // smf ƒtƒ@ƒCƒ‹–¼‚ğ©“®¶¬
-    TCHAR szText[1024];
-    m_edMMLFile.GetWindowText(szText, 1024);
-    CString src(szText);
-    src = src.Left(src.ReverseFind('.')) + _T(".mid");
-    m_edSMFFile.SetWindowText(src.GetBuffer(40));
-  }
+		// smf ãƒ•ã‚¡ã‚¤ãƒ«åã‚’è‡ªå‹•ç”Ÿæˆ
+		TCHAR szText[1024];
+		m_edMMLFile.GetWindowText(szText, 1024);
+		CString src(szText);
+		src = src.Left(src.ReverseFind('.')) + _T(".mid");
+		m_edSMFFile.SetWindowText(src.GetBuffer(40));
+	}
 
-  return 0;
+	return 0;
 }
 
 LRESULT CMainDlg::OnBnClickedBrowsesmfbutton(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/)
 {
-  // TODO : ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
-  CFileDialog fdOpenFile(FALSE, _T("*.mid"), NULL, OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT, _T("•W€ MIDI ƒtƒ@ƒCƒ‹ (*.mid)\0*.mid\0‚·‚×‚Ä‚Ìƒtƒ@ƒCƒ‹\0*.*\0\0"));
+	// TODO : ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ© ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
+	CFileDialog fdOpenFile(FALSE, _T("*.mid"), nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("æ¨™æº– MIDI ãƒ•ã‚¡ã‚¤ãƒ« (*.mid)\0*.mid\0ã™ã¹ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«\0*.*\0\0"));
 
-  m_edSMFFile.GetWindowText(fdOpenFile.m_szFileName, sizeof fdOpenFile.m_szFileName);
-  if(fdOpenFile.DoModal() == IDOK)
-  {
-    m_edSMFFile.SetWindowText(fdOpenFile.m_szFileName);
-  }
+	m_edSMFFile.GetWindowText(fdOpenFile.m_szFileName, _MAX_PATH);
+	if (fdOpenFile.DoModal() == IDOK)
+	{
+		m_edSMFFile.SetWindowText(fdOpenFile.m_szFileName);
+	}
 
-  return 0;
+	return 0;
 }
 
 LRESULT CMainDlg::OnEnSetfocusFileedit(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/)
 {
-  // TODO : ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
-  GetDialogItem<CEdit>(wID).SetSelAll();
+	// TODO : ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ© ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
+	GetDialogItem<CEdit>(wID).SetSelAll();
 
-  return 0;
+	return 0;
 }
 
 LRESULT CMainDlg::OnBnClickedCompilebutton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  // TODO : ‚±‚±‚ÉƒRƒ“ƒgƒ[ƒ‹’Ê’mƒnƒ“ƒhƒ‰ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
-  CString sStdOut, sStdErr;
-  CString sCmdLine = MakeupCommandLine();
+	// TODO : ã“ã“ã«ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«é€šçŸ¥ãƒãƒ³ãƒ‰ãƒ© ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
+	CString sStdOut, sStdErr;
+	CString sCmdLine = MakeupCommandLine();
 
-  m_lvMessages.DeleteAllItems();
-  AddMessage(sCmdLine);
- 
-  RunMML2MID(sCmdLine, sStdOut, sStdErr);
+	m_lvMessages.DeleteAllItems();
+	AddMessage(sCmdLine);
 
-  if(AddMessage(sStdOut))
-  {
-    UIEnable(IDC_PLAYBUTTON, TRUE);
-    m_mnuMenu.EnableMenuItem(IDM_PLAY, MF_ENABLED);
-  }
-  m_mnuMenu.EnableMenuItem(IDM_EDIT, MF_ENABLED);
-  UIEnable(IDC_EDITBUTTON, TRUE);
-  return 0;
+	RunMML2MID(sCmdLine, sStdOut, sStdErr);
+
+	if (AddMessage(sStdOut))
+	{
+		UIEnable(IDC_PLAYBUTTON, TRUE);
+		m_mnuMenu.EnableMenuItem(IDM_PLAY, MF_ENABLED);
+	}
+	m_mnuMenu.EnableMenuItem(IDM_EDIT, MF_ENABLED);
+	UIEnable(IDC_EDITBUTTON, TRUE);
+	return 0;
 }
 
 BOOL CMainDlg::AddMessage(CString s)
 {
-  BOOL f = TRUE;
-  while(s.GetLength())
-  {
-    CString part;
-    int p = s.Find("\x0d\x0a");
-    if(p == -1)
-    {
-      part = s;
-      s = "";
-    }
-    else
-    {
-      part = s.Left(p);
-      s = s.Mid(p + 2);
-    }
-    int nIndex = DecideIcon(part);
-    if(nIndex == 2) f = FALSE;
-    m_lvMessages.AddItem(m_lvMessages.GetItemCount(), 0, part.GetBuffer(64), nIndex);
-  }
-  m_lvMessages.EnsureVisible(m_lvMessages.GetItemCount() - 1, FALSE);
-  return f;
+	BOOL f = TRUE;
+	while (s.GetLength())
+	{
+		CString part;
+		int p = s.Find(_T("\x0d\x0a"));
+		if (p == -1)
+		{
+			part = s;
+			s = _T("");
+		}
+		else
+		{
+			part = s.Left(p);
+			s = s.Mid(p + 2);
+		}
+		int nIndex = DecideIcon(part);
+		if (nIndex == 2) f = FALSE;
+		m_lvMessages.AddItem(m_lvMessages.GetItemCount(), 0, part.GetBuffer(128), nIndex);
+	}
+	m_lvMessages.EnsureVisible(m_lvMessages.GetItemCount() - 1, FALSE);
+	return f;
 }
 
 int CMainDlg::DecideIcon(CString& s)
 {
-  // ƒƒbƒZ[ƒW“à—e‚©‚çƒAƒCƒRƒ“‚ğŒˆ‚ß‚é
-  if(s.Find("ERROR! ") != -1)
-    return 2;
-  if(s.Find("Warning: ") != -1)
-    return 1;
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å†…å®¹ã‹ã‚‰ã‚¢ã‚¤ã‚³ãƒ³ã‚’æ±ºã‚ã‚‹
+	if (s.Find(_T("ERROR! ")) != -1)
+		return 2;
+	if (s.Find(_T("Warning: ")) != -1)
+		return 1;
 
-  return 0;
+	return 0;
 }
 
 LRESULT CMainDlg::OnEnTransposeedit(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-  if(m_udTranspose.m_hWnd != NULL)
-  {
-    BOOL bError;
-    m_udTranspose.GetPos(&bError);
-    if(bError)
-      m_udTranspose.SetPos(0);
-  }
-  return 0;
+	if (m_udTranspose.m_hWnd != nullptr)
+	{
+		BOOL bError;
+		m_udTranspose.GetPos(&bError);
+		if (bError)
+			m_udTranspose.SetPos(0);
+	}
+	return 0;
 }
 
 LRESULT CMainDlg::OnAbout(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  // TODO : ‚±‚±‚ÉƒRƒ}ƒ“ƒh ƒnƒ“ƒhƒ‰ ƒR[ƒh‚ğ’Ç‰Á‚µ‚Ü‚·B
-  //CSimpleDialog<IDD_ABOUTBOX> dlg;
-  CAboutDlg dlg;
-  dlg.DoModal();
+	// TODO : ã“ã“ã«ã‚³ãƒãƒ³ãƒ‰ ãƒãƒ³ãƒ‰ãƒ© ã‚³ãƒ¼ãƒ‰ã‚’è¿½åŠ ã—ã¾ã™ã€‚
+	//CSimpleDialog<IDD_ABOUTBOX> dlg;
+	CAboutDlg dlg;
+	dlg.DoModal();
 
-  return 0;
+	return 0;
 }
 
 LRESULT CMainDlg::OnBnClickedPlaybutton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  TCHAR szTemp[1024];
-  m_edSMFFile.GetWindowText(szTemp, 1024);
-  CString sCmdLine(szTemp);
-  m_pref.PlaySMFFile(*this, sCmdLine);
-  return 0;
+	TCHAR szTemp[1024];
+	m_edSMFFile.GetWindowText(szTemp, 1024);
+	CString sCmdLine(szTemp);
+	m_pref.PlaySMFFile(*this, sCmdLine);
+	return 0;
 }
 LRESULT CMainDlg::OnBnClickedEditbutton(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  TCHAR szTemp[1024];
-  m_edMMLFile.GetWindowText(szTemp, 1024);
-  CString sCmdLine(szTemp);
-  m_pref.EditMMLFile(*this, sCmdLine);
-  return 0;
+	TCHAR szTemp[1024];
+	m_edMMLFile.GetWindowText(szTemp, 1024);
+	CString sCmdLine(szTemp);
+	m_pref.EditMMLFile(*this, sCmdLine);
+	return 0;
 }
 
 CString CMainDlg::MakeupCommandLine()
 {
-  CString sCmdLine = "", sTemp;
-  TCHAR szTemp[1024];
+	CString sCmdLine = "", sTemp;
+	TCHAR szTemp[1024];
 
-  sCmdLine.Format("\"%s\" ", m_pref.GetMML2MIDSetting());
-  if(GetDialogItem<CButton>(IDC_INVERTOCTCHECK).GetCheck())
-    sCmdLine += "-x ";
-  if(GetDialogItem<CButton>(IDC_INVERTVOLCHECK).GetCheck())
-    sCmdLine += "-v ";
-  if(GetDialogItem<CButton>(IDC_SMFFORMAT0RADIO).GetCheck())
-    sCmdLine += "-f ";
-  GetDialogItem<CEdit>(IDC_TRANSPOSEEDIT).GetWindowText(szTemp, sizeof szTemp);
-  if(atoi(szTemp) != 0)
-  {
-    sTemp.Format("-t%s ", szTemp);
-    sCmdLine += sTemp;
-  }
+	sCmdLine.Format(_T("\"%s\" "), m_pref.GetMML2MIDSetting());
+	if (GetDialogItem<CButton>(IDC_INVERTOCTCHECK).GetCheck())
+		sCmdLine += _T("-x ");
+	if (GetDialogItem<CButton>(IDC_INVERTVOLCHECK).GetCheck())
+		sCmdLine += _T("-v ");
+	if (GetDialogItem<CButton>(IDC_SMFFORMAT0RADIO).GetCheck())
+		sCmdLine += _T("-f ");
+	GetDialogItem<CEdit>(IDC_TRANSPOSEEDIT).GetWindowText(szTemp, 1024);
+	if (_tstoi(szTemp) != 0)
+	{
+		sTemp.Format(_T("-t%s "), szTemp);
+		sCmdLine += sTemp;
+	}
 
-  CString sMMLFile, sSMFFile;
+	CString sMMLFile, sSMFFile;
 
-  m_edMMLFile.GetWindowText(szTemp, 1024); sMMLFile = szTemp;
-  m_edSMFFile.GetWindowText(szTemp, 1024); sSMFFile = szTemp;
+	m_edMMLFile.GetWindowText(szTemp, 1024); sMMLFile = szTemp;
+	m_edSMFFile.GetWindowText(szTemp, 1024); sSMFFile = szTemp;
 
-  sTemp.Format("\"%s\" \"%s\"", sMMLFile, sSMFFile);
-  sCmdLine += sTemp;
+	sTemp.Format(_T(R"("%s" "%s")"), sMMLFile, sSMFFile);
+	sCmdLine += sTemp;
 
-  return sCmdLine;
+	return sCmdLine;
 }
 
 LRESULT CMainDlg::OnEnFileedit(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-  UINT f = (m_edMMLFile.GetWindowTextLength() > 0
-            && m_edSMFFile.GetWindowTextLength() > 0)
-           ? MF_ENABLED : MF_GRAYED;
-  
-  UIEnable(IDC_COMPILEBUTTON, (f == MF_ENABLED));
+	UINT f = (m_edMMLFile.GetWindowTextLength() > 0
+		&& m_edSMFFile.GetWindowTextLength() > 0)
+		? MF_ENABLED : MF_GRAYED;
 
-  m_mnuMenu.EnableMenuItem(IDM_COMPILE, f);
+	UIEnable(IDC_COMPILEBUTTON, (f == MF_ENABLED));
 
-  return 0;
+	m_mnuMenu.EnableMenuItem(IDM_COMPILE, f);
+
+	return 0;
 }
 
 LRESULT CMainDlg::OnMML2MIDWeb(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  ShellExecute(*this, NULL, _T("http://hpc.jp/~mml2mid/"), NULL, NULL, SW_SHOWDEFAULT);
-  return 0;
+	ShellExecute(*this, nullptr, _T("http://hpc.jp/~mml2mid/"), nullptr, nullptr, SW_SHOWDEFAULT);
+	return 0;
 }
 LRESULT CMainDlg::OnAutchNet(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  ShellExecute(*this, NULL, _T("http://www.autch.net/"), NULL, NULL, SW_SHOWDEFAULT);
-  return 0;
+	ShellExecute(*this, nullptr, _T("http://www.autch.net/"), nullptr, nullptr, SW_SHOWDEFAULT);
+	return 0;
 }
 LRESULT CMainDlg::OnHelpContents(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  // TODO : ƒwƒ‹ƒvƒtƒ@ƒCƒ‹‚ğì‚é
-  ShellExecute(*this, NULL, _T("mml2midfe.txt"), NULL, NULL, SW_SHOWDEFAULT);
-  return 0;
+	// TODO : ãƒ˜ãƒ«ãƒ—ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œã‚‹
+	ShellExecute(*this, nullptr, _T("mml2midfe.txt"), nullptr, nullptr, SW_SHOWDEFAULT);
+	return 0;
 }
 
 LRESULT CMainDlg::OnPreferences(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/)
 {
-  CPreferencesDlg dlg;
-  dlg.SetPreferences(m_pref);
-  if(dlg.DoModal() == IDOK)
-  {
-    m_pref = dlg.GetPreferences();
-  }
-  return 0;
+	CPreferencesDlg dlg;
+	dlg.SetPreferences(m_pref);
+	if (dlg.DoModal() == IDOK)
+	{
+		m_pref = dlg.GetPreferences();
+	}
+	return 0;
 }
 
 LRESULT CMainDlg::OnListClick(LPNMHDR pnmh)
 {
-  LPNMITEMACTIVATE pnmia = (LPNMITEMACTIVATE)pnmh;
+	auto pnmia = reinterpret_cast<LPNMITEMACTIVATE>(pnmh);
 
-  CString sItem;
-  m_lvMessages.GetItemText(pnmia->iItem, 0, sItem);
-  m_edMessage.SetWindowText(sItem);
-  return 0;
+	CString sItem;
+	m_lvMessages.GetItemText(pnmia->iItem, 0, sItem);
+	m_edMessage.SetWindowText(sItem);
+	return 0;
 }
 
 LRESULT CMainDlg::OnListDblClick(LPNMHDR pnmh)
 {
-  LPNMITEMACTIVATE pnmia = (LPNMITEMACTIVATE)pnmh;
+	auto pnmia = reinterpret_cast<LPNMITEMACTIVATE>(pnmh);
 
-  CString sItem;
-  m_lvMessages.GetItemText(pnmia->iItem, 0, sItem);
-  CString pos;
-  int p = sItem.Find(_T("in line "));
-  if(p != -1)
-  {
-    pos = sItem.Mid(p + 8);
-    int l = atoi(pos.GetBuffer(20));
-    CString sMMLFile;
-    TCHAR szTemp[1024];
-    m_edMMLFile.GetWindowText(szTemp, 1024); sMMLFile = szTemp;
-    m_pref.EditMMLFile(*this, sMMLFile, l);
+	CString sItem;
+	m_lvMessages.GetItemText(pnmia->iItem, 0, sItem);
+	CString pos;
+	int p = sItem.Find(_T("in line "));
+	if (p != -1)
+	{
+		pos = sItem.Mid(p + 8);
+		int l = _tstoi(pos.GetBuffer(20));
+		CString sMMLFile;
+		TCHAR szTemp[1024];
+		m_edMMLFile.GetWindowText(szTemp, 1024); sMMLFile = szTemp;
+		m_pref.EditMMLFile(*this, sMMLFile, l);
 
-  }
-  return 0;
+	}
+	return 0;
 }
 
 LRESULT CMainDlg::OnDropFiles(HDROP hDrop)
 {
-  PCHAR pszDroppedFile = NULL;
-  DWORD dwFileNameSize = 0;
+	DWORD dwFileNameSize = ::DragQueryFile(hDrop, 0, nullptr, 0);
+	TCHAR* pszDroppedFile = new TCHAR[dwFileNameSize + 1];
+	::DragQueryFile(hDrop, 0, pszDroppedFile, dwFileNameSize + 1);
+	m_edMMLFile.SetWindowText(pszDroppedFile);
+	// smf ãƒ•ã‚¡ã‚¤ãƒ«åã‚’è‡ªå‹•ç”Ÿæˆ
+	TCHAR szText[1024];
+	m_edMMLFile.GetWindowText(szText, 1024);
+	CString src(szText);
+	src = src.Left(src.ReverseFind('.')) + _T(".mid");
+	m_edSMFFile.SetWindowText(src.GetBuffer(40));
 
-  dwFileNameSize = ::DragQueryFile(hDrop, 0, NULL, 0);
-  pszDroppedFile = new CHAR[dwFileNameSize + 1];
-  ::DragQueryFile(hDrop, 0, pszDroppedFile, dwFileNameSize + 1);
-  m_edMMLFile.SetWindowText(pszDroppedFile);
-  // smf ƒtƒ@ƒCƒ‹–¼‚ğ©“®¶¬
-  TCHAR szText[1024];
-  m_edMMLFile.GetWindowText(szText, 1024);
-  CString src(szText);
-  src = src.Left(src.ReverseFind('.')) + _T(".mid");
-  m_edSMFFile.SetWindowText(src.GetBuffer(40));
-
-  return 0;
+	return 0;
 }

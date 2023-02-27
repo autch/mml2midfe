@@ -6,13 +6,12 @@
 #pragma once
 
 // Change these values to use different versions
-#define WINVER		0x0400
-//#define _WIN32_WINNT	0x0400
-#define _WIN32_IE	0x0400
-#define _RICHEDIT_VER	0x0100
+#ifndef WINVER  
+#define WINVER 0x0501
+#define _WIN32_WINNT 0x0501
+#endif
 
-#define _SECURE_ATL
-#define _WTL_FORWARD_DECLARE_CSTRING
+#include <Windows.h>
 
 #include <atlbase.h>
 #include <atlapp.h>
@@ -26,3 +25,7 @@ extern CAppModule _Module;
 #include <atlframe.h>
 #include <atlctrls.h>
 #include <atldlgs.h>
+
+#include <memory>
+#include <string>
+#include <functional>

@@ -1,4 +1,3 @@
-
 #pragma once
 
 BOOL GetMML2MIDBanner(CString sPath, CString& sRet);
